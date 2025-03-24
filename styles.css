@@ -109,6 +109,16 @@ body {
     display: none;
 }
 
+/* Add folding left animation for the overlay */
+@keyframes foldLeft {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(-150%); opacity: 0; }
+}
+
+.overlay.fold-left {
+    animation: foldLeft 1s forwards;
+}
+
 #enter-vr-btn {
     background-color: #4CAF50;
     border: none;

@@ -25,6 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show the non-VR info overlay
             if (nonVrInfo) {
                 nonVrInfo.style.display = 'block';
+                // After 5 seconds, fold the overlay to the left
+                setTimeout(() => {
+                    nonVrInfo.classList.add('fold-left');
+                }, 5000);
             }
             
             // Check if gallery structures are visible
