@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VR Gallery Experience</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- A-Frame library -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <!-- A-Frame extras for more controls -->
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <p>Loading VR Experience...</p>
+    </div>
+    
+    <div id="non-vr-info" class="overlay">
+        <h1>VR Gallery Experience</h1>
+        <p>Navigation: WASD keys to move, mouse to look around</p>
+        <p>Click on objects to interact with them</p>
+        <button id="enter-vr-btn">Enter VR Mode</button>
+    </div>
+    
+    <a-scene background="color: #SKYBLUE" loading-screen="enabled: false" vr-mode-ui="enabled: true">
+        <!-- Assets preloading - now using empty assets section, textures will be created via code -->
+        <a-assets id="assets">
+            <!-- Textures will be added programmatically -->
+        </a-assets>
+        
+        <!-- Environment -->
+        <a-plane id="floor" position="0 0 0" rotation="-90 0 0" width="20" height="20" color="#CCCCCC"></a-plane>
+        <a-box id="wall-left" position="-10 2 0" width="0.5" height="4" depth="20" color="#AAAAAA"></a-box>
+        <a-box id="wall-right" position="10 2 0" width="0.5" height="4" depth="20" color="#AAAAAA"></a-box>
+        <a-box id="wall-back" position="0 2 -10" width="20" height="4" depth="0.5" color="#AAAAAA"></a-box>
+        
+        <!-- Gallery Items -->
+        <a-entity id="gallery-item-1" position="-5 2 -9.7" class="interactive" data-info="Artwork 1: Abstract Landscape"></a-entity>
+        <a-entity id="gallery-item-2" position="0 2 -9.7" class="interactive" data-info="Artwork 2: Digital Portrait"></a-entity>
+        <a-entity id="gallery-item-3" position="5 2 -9.7" class="interactive" data-info="Artwork 3: Modern Composition"></a-entity>
+        
+        <!-- Info panel that appears when clicking on images -->
+        <a-entity id="info-panel" position="0 1.6 -2" visible="false">
+            <a-plane width="2.5" height="1" color="#333333" opacity="0.8"></a-plane>
+            <a-text id="info-text" value="" align="center" color="white" width="2" position="0 0 0.01"></a-text>
+        </a-entity>
+        
+        <!-- Camera and controls -->
+        <a-entity id="rig" position="0 1.6 0">
+            <a-camera look-controls wasd-controls="acceleration: 100">
+                <a-cursor raycaster="objects: .interactive" color="white"></a-cursor>
+            </a-camera>
+        </a-entity>
+        
+        <!-- Ambient light -->
+        <a-light type="ambient" intensity="0.5"></a-light>
+        <a-light type="directional" position="1 1 1" intensity="0.8"></a-light>
+    </a-scene>
+    
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
