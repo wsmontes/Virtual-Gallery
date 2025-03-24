@@ -20,14 +20,20 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             this.errors.push(errorInfo);
-            console.error(`Gallery Error in ${context}:`, error);
+            
+            // More detailed error logging
+            if (error instanceof Error) {
+                console.error(`Gallery Error in ${context}:`, error.message, error.stack);
+            } else {
+                console.error(`Gallery Error in ${context}:`, error);
+            }
             
             // Attempt recovery based on context
             this.attemptRecovery(context, error);
             
             // Display error indicator if in debug mode
             if (window.galleryDebug) {
-                this.showErrorIndicator();
+                this.showErrorIndicator(context, error);
             }
         },
         
@@ -127,33 +133,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         
-        // Show a visual indicator that errors have occurred
-        showErrorIndicator: function() {
-            let indicator = document.getElementById('error-indicator');
-            
-            if (!indicator) {
-                const scene = document.querySelector('a-scene');
-                if (!scene) return;
-                
-                indicator = document.createElement('a-entity');
-                indicator.id = 'error-indicator';
-                indicator.setAttribute('position', '0 0.1 -1');
-                indicator.setAttribute('text', 'value: Errors detected. Check console.; color: red; align: center; width: 2');
-                
-                scene.appendChild(indicator);
-                
-                // Auto-hide after 10 seconds
-                setTimeout(() => {
-                    indicator.setAttribute('visible', 'false');
-                }, 10000);
-            }
+        // Show a visual indicator that errors have occurred with more details
+        showErrorIndicator: function(context, error) {
+            // Red error indicator removed to prevent blinking red effect.
+            // If needed for debugging, uncomment the code below.
+            // let indicator = document.getElementById('error-indicator');
+            // if (!indicator) {
+            //     const scene = document.querySelector('a-scene');
+            //     if (!scene) return;
+            //     indicator = document.createElement('a-entity');
+            //     indicator.id = 'error-indicator';
+            //     indicator.setAttribute('position', '0 0.1 -1');
+            //     const errorMessage = typeof error === 'string' ?
+            //         error : (error instanceof Error ? error.message : 'Unknown error');
+            //     indicator.setAttribute('text', `value: Error in ${context}: ${errorMessage.slice(0, 50)}...; color: red; align: center; width: 2`);
+            //     scene.appendChild(indicator);
+            //     setTimeout(() => { indicator.setAttribute('visible', 'false'); }, 10000);
+            // }
+            return;
         }
     };
     
-    // Add global error event listener
+    // Commented out the global error event listener to prevent red blinking error indicators
+    // window.addEventListener('error', function(e) {
+    //     if (window.galleryErrorHandler) {
+    //         const context = e.filename ? `${e.filename}:${e.lineno}:${e.colno}` : 'window';
+    //         let errorDetails = e.error || e.message;
+    //         if (e.message === 'Script error.' && !e.filename) {
+    //             errorDetails = 'Cross-origin script error. Check for issues with external scripts.';
+    //         }
+    //         window.galleryErrorHandler.handleError(context, errorDetails);
+    //     }
+    // });
+
+    // Instead, add a simplified error log without any visual indicator:
     window.addEventListener('error', function(e) {
-        if (window.galleryErrorHandler) {
-            window.galleryErrorHandler.handleError('window', e.error || e.message);
-        }
+        const context = e.filename ? `${e.filename}:${e.lineno}:${e.colno}` : 'window';
+        let errorDetails = e.error || e.message || 'Unknown error';
+        console.error(`Gallery Error in ${context}:`, errorDetails);
+        // No visual indicator is created.
     });
 });

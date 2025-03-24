@@ -30,6 +30,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Check if gallery structures are visible
             setTimeout(checkGalleryVisibility, 2000);
             
+            // Check if we need to load additional artwork manually
+            if (typeof window.generateAdditionalArtwork === 'function') {
+                console.log("Manually triggering additional artwork generation");
+                window.generateAdditionalArtwork();
+            }
+            
             if (!isVRSupported) {
                 console.log('WebXR not fully supported - using fallback mode');
                 showFallbackMessage();
@@ -68,74 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Exited VR mode');
             nonVrInfo.style.display = 'block';
         });
-    });
-    
-    // Register custom component for boundary collision detection
-    AFRAME.registerComponent('boundary-check', {
-        init: function() {
-            this.camera = this.el;
-            this.boundaries = document.querySelectorAll('.boundary');
-            this.speed = 0.2;
-            this.canMove = true;
-            this.lastPosition = new THREE.Vector3();
-            this.currentPosition = new THREE.Vector3();
-            
-            // Store initial position
-            this.camera.object3D.getWorldPosition(this.lastPosition);
-            this.currentPosition.copy(this.lastPosition);
-        },
-        
-        tick: function() {
-            // Store current position
-            this.camera.object3D.getWorldPosition(this.currentPosition);
-            
-            // If position has changed, check boundaries
-            if (!this.currentPosition.equals(this.lastPosition)) {
-                // Check collision with each boundary
-                let collision = false;
-                const cameraPosition = this.currentPosition.clone();
-                
-                // Create a bounding box for the camera
-                const cameraBoundingBox = new THREE.Box3();
-                cameraBoundingBox.setFromCenterAndSize(
-                    cameraPosition, 
-                    new THREE.Vector3(0.5, 0.5, 0.5)
-                );
-                
-                // Check for collisions with boundaries
-                this.boundaries.forEach(boundary => {
-                    const boundaryEl = boundary.object3D;
-                    const boundaryBox = new THREE.Box3().setFromObject(boundaryEl);
-                    
-                    if (cameraBoundingBox.intersectsBox(boundaryBox)) {
-                        collision = true;
-                    }
-                });
-                
-                // If collision detected, revert to previous position
-                if (collision) {
-                    const rig = document.getElementById('rig');
-                    const rigPosition = new THREE.Vector3();
-                    rig.object3D.getWorldPosition(rigPosition);
-                    
-                    // Calculate movement direction
-                    const direction = new THREE.Vector3().subVectors(
-                        this.currentPosition, 
-                        this.lastPosition
-                    );
-                    
-                    // Move back by setting position to last valid position
-                    rig.setAttribute('position', {
-                        x: rigPosition.x - direction.x,
-                        y: rigPosition.y,
-                        z: rigPosition.z - direction.z
-                    });
-                } else {
-                    // Update last position if no collision
-                    this.lastPosition.copy(this.currentPosition);
-                }
-            }
-        }
     });
     
     // Generate all textures programmatically
@@ -313,13 +251,15 @@ document.addEventListener('DOMContentLoaded', function() {
         img.src = dataUrl;
         assets.appendChild(img);
         
-        // Apply texture safely
+        // Apply texture safely with improved targeting
         setTimeout(() => {
-            const artwork = document.getElementById('gallery-item-1');
+            const artwork = document.getElementById('gallery-item-1-canvas');
             if (artwork) {
                 artwork.setAttribute('material', 'src: #artwork1');
+            } else {
+                console.warn('gallery-item-1-canvas not found for texture application');
             }
-        }, 100);
+        }, 200);
     }
     
     // Create digital portrait artwork
@@ -389,13 +329,15 @@ document.addEventListener('DOMContentLoaded', function() {
         img.src = dataUrl;
         assets.appendChild(img);
         
-        // Apply texture safely
+        // Apply texture safely with improved targeting
         setTimeout(() => {
-            const artwork = document.getElementById('gallery-item-2');
+            const artwork = document.getElementById('gallery-item-2-canvas');
             if (artwork) {
                 artwork.setAttribute('material', 'src: #artwork2');
+            } else {
+                console.warn('gallery-item-2-canvas not found for texture application');
             }
-        }, 100);
+        }, 200);
     }
     
     // Create modern composition artwork
@@ -465,13 +407,15 @@ document.addEventListener('DOMContentLoaded', function() {
         img.src = dataUrl;
         assets.appendChild(img);
         
-        // Apply texture safely
+        // Apply texture safely with improved targeting
         setTimeout(() => {
-            const artwork = document.getElementById('gallery-item-3');
+            const artwork = document.getElementById('gallery-item-3-canvas');
             if (artwork) {
                 artwork.setAttribute('material', 'src: #artwork3');
+            } else {
+                console.warn('gallery-item-3-canvas not found for texture application');
             }
-        }, 100);
+        }, 200);
     }
     
     // Create roof texture - ceiling pattern
@@ -633,8 +577,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const scene = document.querySelector('a-scene');
         
         if (mode === 'reduced') {
-            // Reduce draw distance by adding fog
-            scene.setAttribute('fog', 'type: linear; color: #87CEEB; near: 5; far: 15');
+            // Ultra-subtle fog for reduced performance mode
+            scene.setAttribute('fog', 'type: exponential; color: #FFFFFF; density: 0.01');
             
             // Reduce light intensity
             document.querySelectorAll('a-light[type="spot"]').forEach(light => {
@@ -642,8 +586,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
         } else if (mode === 'minimal') {
-            // More aggressive fog
-            scene.setAttribute('fog', 'type: linear; color: #87CEEB; near: 2; far: 10');
+            // More aggressive but still extremely light fog
+            scene.setAttribute('fog', 'type: exponential; color: #FFFFFF; density: 0.02');
             
             // Further reduce lighting
             document.querySelectorAll('a-light[type="spot"]').forEach(light => {
@@ -674,28 +618,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (element) {
                 visibleCount++;
                 console.log(`Element ${elementId} exists`);
-                
-                // Add debug highlight to ensure element is visible
-                if (window.galleryDebug) {
-                    // Add blinking animation temporarily
-                    const originalMaterial = element.getAttribute('material');
-                    
-                    element.setAttribute('animation__debug', {
-                        property: 'material.color',
-                        from: '#FF0000',
-                        to: originalMaterial && originalMaterial.color 
-                            ? originalMaterial.color 
-                            : '#FFFFFF',
-                        dur: 1000,
-                        dir: 'alternate',
-                        loop: 3
-                    });
-                    
-                    // Remove debug animation after 3 seconds
-                    setTimeout(() => {
-                        element.removeAttribute('animation__debug');
-                    }, 3000);
-                }
             } else {
                 console.warn(`Element ${elementId} not found`);
             }
@@ -740,5 +662,28 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('reload-btn').addEventListener('click', function() {
             window.location.reload();
         });
+    }
+
+    // Apply texture safely with retries
+    function applyArtworkTexture(artworkId, textureId) {
+        // Try to find the artwork element
+        const artwork = document.getElementById(artworkId);
+        if (artwork) {
+            artwork.setAttribute('material', `src: #${textureId}`);
+            return true;
+        } else {
+            console.warn(`Artwork ${artworkId} not found, will retry once`);
+            // Try again after a short delay
+            setTimeout(() => {
+                const retryArtwork = document.getElementById(artworkId);
+                if (retryArtwork) {
+                    retryArtwork.setAttribute('material', `src: #${textureId}`);
+                    console.log(`Successfully applied texture to ${artworkId} on retry`);
+                } else {
+                    console.error(`Failed to find artwork ${artworkId} even after retry`);
+                }
+            }, 500);
+            return false;
+        }
     }
 });

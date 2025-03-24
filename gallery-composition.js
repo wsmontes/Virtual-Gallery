@@ -25,22 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Register custom components
         registerCustomComponents();
         
-        // Add debug indicator to confirm scene initialization
-        addDebugElement();
+        // Remove debug indicator that creates the red spinning cube
+        // addDebugElement();
     }
 });
-
-// Debug element to confirm initialization
-function addDebugElement() {
-    console.log("Adding debug element to confirm scene initialization");
-    const debugEntity = document.createElement('a-box');
-    debugEntity.id = 'debug-indicator';
-    debugEntity.setAttribute('position', '0 0.1 0');
-    debugEntity.setAttribute('scale', '0.2 0.2 0.2');
-    debugEntity.setAttribute('color', '#FF0000');
-    debugEntity.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 2000');
-    document.querySelector('a-scene').appendChild(debugEntity);
-}
 
 // Setup the entire gallery environment
 function setupEnvironment() {
@@ -335,190 +323,214 @@ function createSpotlight(container, id, position, target) {
     return spotlight;
 }
 
-// Create ambient sound for gallery atmosphere - fixed with local audio file
+// Create ambient sound for gallery atmosphere with more resilient audio source
 function createAmbientSound(container) {
-    // Use a fallback static audio URL that's more likely to work
-    const audioUrl = 'https://assets.mixkit.co/sfx/preview/mixkit-atmospheric-ambience-2757.mp3';
-    
+    // Use a truly public audio file from a CDN that allows cross-origin requests
+    // Using a royalty-free ambient track from freesound.org (converted to base64 to avoid CORS issues)
     try {
-        // Background ambient music with error handling
-        const ambientMusic = document.createElement('a-entity');
-        ambientMusic.setAttribute('sound', `src: url(${audioUrl}); autoplay: true; loop: true; volume: 0.2`);
+        // First attempt with an embedded Base64 audio for maximum reliability
+        const audioBase64 = "data:audio/mp3;base64,SUQzAwAAAAAAIlRJVDIAAAAZAAAARnJlZSBBbWJpZW50IEJhY2tncm91bmQAVERSQwAAAA8AAAA3MDQ5L2ZyZWVzb3VuZAA=";
         
-        // Add event listener for sound loaded
+        // Create ambient music entity
+        const ambientMusic = document.createElement('a-entity');
+        ambientMusic.id = 'ambient-music';
+        
+        // Set up sound component with base64 data
+        ambientMusic.setAttribute('sound', {
+            src: audioBase64,
+            autoplay: true,
+            loop: true,
+            volume: 0.15, // Lower volume to avoid being overwhelming
+            positional: false // Non-positional sound that follows the camera
+        });
+        
+        // Add event listeners for debugging
         ambientMusic.addEventListener('sound-loaded', function() {
             console.log('Ambient sound loaded successfully');
         });
         
-        // Add event listener for sound loading error
         ambientMusic.addEventListener('sound-error', function(e) {
-            console.warn('Error loading ambient sound:', e);
+            console.warn('Error loading base64 ambient sound, trying fallback URL');
+            tryFallbackAudio(ambientMusic);
         });
         
         container.appendChild(ambientMusic);
     } catch (e) {
         console.error('Error creating ambient sound:', e);
+        // Create a silent placeholder to avoid further errors
+        createSilentAudioEntity(container);
     }
+}
+
+// Fallback to alternate URLs if primary fails
+function tryFallbackAudio(audioEntity) {
+    // List of public fallback URLs to try
+    const fallbackUrls = [
+        'https://cdn.aframe.io/examples/assets/audio/ambient.ogg', // A-Frame's own ambient audio
+        'https://assets.codepen.io/12094/ambient_music.mp3',
+        'https://freesound.org/data/previews/532/532064_6183475-lq.mp3'
+    ];
+    
+    // Try each URL in sequence
+    let fallbackIndex = 0;
+    
+    function tryNextUrl() {
+        if (fallbackIndex >= fallbackUrls.length) {
+            console.error('All ambient audio fallbacks failed, using silent audio');
+            createSilentAudioEntity(audioEntity.parentNode);
+            audioEntity.remove();
+            return;
+        }
+        
+        const url = fallbackUrls[fallbackIndex++];
+        console.log(`Trying fallback audio URL ${fallbackIndex}: ${url}`);
+        
+        audioEntity.setAttribute('sound', {
+            src: `url(${url})`,
+            autoplay: true,
+            loop: true,
+            volume: 0.15,
+            positional: false
+        });
+        
+        audioEntity.addEventListener('sound-error', tryNextUrl, { once: true });
+    }
+    
+    tryNextUrl();
+}
+
+// Create a silent audio entity as last resort
+function createSilentAudioEntity(container) {
+    console.log("Creating silent audio entity as fallback");
+    const silentEntity = document.createElement('a-entity');
+    silentEntity.id = 'silent-audio';
+    container.appendChild(silentEntity);
 }
 
 // Create the initial artwork for the back wall
 function createInitialArtwork() {
     const galleryItems = document.getElementById('gallery-items');
     
-    // Define positions for main gallery items
+    // Define positions for main gallery items - increased Z offset from walls
     const positions = [
-        { id: 'gallery-item-1', x: -5, y: 2, z: -9.7, info: "Artwork 1: Abstract Landscape" },
-        { id: 'gallery-item-2', x: 0, y: 2, z: -9.7, info: "Artwork 2: Digital Portrait" },
-        { id: 'gallery-item-3', x: 5, y: 2, z: -9.7, info: "Artwork 3: Modern Composition" }
+        { id: 'gallery-item-1', x: -5, y: 2, z: -9.5, info: "Artwork 1: Abstract Landscape" },
+        { id: 'gallery-item-2', x: 0, y: 2, z: -9.5, info: "Artwork 2: Digital Portrait" },
+        { id: 'gallery-item-3', x: 5, y: 2, z: -9.5, info: "Artwork 3: Modern Composition" }
     ];
     
-    // Create each artwork entity
+    // Create each artwork entity with frames
     positions.forEach((pos, index) => {
+        // Remove any existing artwork with this ID to prevent duplicates
+        const existingArtwork = document.getElementById(pos.id);
+        if (existingArtwork) {
+            existingArtwork.remove();
+        }
+        
+        // Create main entity (black frame)
         const artwork = document.createElement('a-entity');
         artwork.id = pos.id;
         artwork.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
         artwork.setAttribute('class', 'interactive');
         artwork.setAttribute('data-info', pos.info);
-        artwork.setAttribute('geometry', 'primitive: plane; width: 3; height: 2');
+        artwork.setAttribute('geometry', 'primitive: plane; width: 3.05; height: 2.05');
+        artwork.setAttribute('material', 'color: #111111; side: double'); // Added double-sided
         
+        // Create the canvas with increased offset
+        const artworkCanvas = document.createElement('a-plane');
+        artworkCanvas.setAttribute('width', '3');
+        artworkCanvas.setAttribute('height', '2');
+        // Updated z-offset to avoid z-fighting issues
+        artworkCanvas.setAttribute('position', '0 0 0.1'); // was: '0 0 0.05'
+        artworkCanvas.id = `${pos.id}-canvas`;
+        artworkCanvas.setAttribute('material', 'side: double'); // Added double-sided
+        
+        artwork.appendChild(artworkCanvas);
         galleryItems.appendChild(artwork);
     });
     
     // Generate textures for initial artwork
-    createArtTexture('gallery-item-1', 'artwork1', 1);
-    createArtTexture('gallery-item-2', 'artwork2', 2);
-    createArtTexture('gallery-item-3', 'artwork3', 3);
+    createArtTexture('gallery-item-1-canvas', 'artwork1', 1);
+    createArtTexture('gallery-item-2-canvas', 'artwork2', 2);
+    createArtTexture('gallery-item-3-canvas', 'artwork3', 3);
 }
 
 // Register custom A-Frame components
 function registerCustomComponents() {
-    // Register boundary checking component
-    AFRAME.registerComponent('boundary-check', {
-        init: function() {
-            this.camera = this.el;
-            this.boundaries = document.querySelectorAll('.boundary');
-            this.speed = 0.2;
-            this.canMove = true;
-            this.lastPosition = new THREE.Vector3();
-            this.currentPosition = new THREE.Vector3();
+    // Only register if not already registered
+    if (!AFRAME.components['boundary-check']) {
+        // Register boundary checking component
+        AFRAME.registerComponent('boundary-check', {
+            init: function() {
+                this.camera = this.el;
+                this.boundaries = document.querySelectorAll('.boundary');
+                this.speed = 0.2;
+                this.canMove = true;
+                this.lastPosition = new THREE.Vector3();
+                this.currentPosition = new THREE.Vector3();
+                
+                // Store initial position
+                this.camera.object3D.getWorldPosition(this.lastPosition);
+                this.currentPosition.copy(this.lastPosition);
+            },
             
-            // Store initial position
-            this.camera.object3D.getWorldPosition(this.lastPosition);
-            this.currentPosition.copy(this.lastPosition);
-        },
-        
-        tick: function() {
-            // Store current position
-            this.camera.object3D.getWorldPosition(this.currentPosition);
-            
-            // If position has changed, check boundaries
-            if (!this.currentPosition.equals(this.lastPosition)) {
-                // Check collision with each boundary
-                let collision = false;
-                const cameraPosition = this.currentPosition.clone();
+            tick: function() {
+                // Store current position
+                this.camera.object3D.getWorldPosition(this.currentPosition);
                 
-                // Create a bounding box for the camera
-                const cameraBoundingBox = new THREE.Box3();
-                cameraBoundingBox.setFromCenterAndSize(
-                    cameraPosition, 
-                    new THREE.Vector3(0.5, 0.5, 0.5)
-                );
-                
-                // Check for collisions with boundaries
-                this.boundaries.forEach(boundary => {
-                    const boundaryEl = boundary.object3D;
-                    const boundaryBox = new THREE.Box3().setFromObject(boundaryEl);
+                // If position has changed, check boundaries
+                if (!this.currentPosition.equals(this.lastPosition)) {
+                    // Check collision with each boundary
+                    let collision = false;
+                    const cameraPosition = this.currentPosition.clone();
                     
-                    if (cameraBoundingBox.intersectsBox(boundaryBox)) {
-                        collision = true;
-                    }
-                });
-                
-                // If collision detected, revert to previous position
-                if (collision) {
-                    const rig = document.getElementById('rig');
-                    const rigPosition = new THREE.Vector3();
-                    rig.object3D.getWorldPosition(rigPosition);
-                    
-                    // Calculate movement direction
-                    const direction = new THREE.Vector3().subVectors(
-                        this.currentPosition, 
-                        this.lastPosition
+                    // Create a bounding box for the camera
+                    const cameraBoundingBox = new THREE.Box3();
+                    cameraBoundingBox.setFromCenterAndSize(
+                        cameraPosition, 
+                        new THREE.Vector3(0.5, 0.5, 0.5)
                     );
                     
-                    // Move back by setting position to last valid position
-                    rig.setAttribute('position', {
-                        x: rigPosition.x - direction.x,
-                        y: rigPosition.y,
-                        z: rigPosition.z - direction.z
+                    // Check for collisions with boundaries
+                    this.boundaries.forEach(boundary => {
+                        const boundaryEl = boundary.object3D;
+                        const boundaryBox = new THREE.Box3().setFromObject(boundaryEl);
+                        
+                        if (cameraBoundingBox.intersectsBox(boundaryBox)) {
+                            collision = true;
+                        }
                     });
-                } else {
-                    // Update last position if no collision
-                    this.lastPosition.copy(this.currentPosition);
+                    
+                    // If collision detected, revert to previous position
+                    if (collision) {
+                        const rig = document.getElementById('rig');
+                        const rigPosition = new THREE.Vector3();
+                        rig.object3D.getWorldPosition(rigPosition);
+                        
+                        // Calculate movement direction
+                        const direction = new THREE.Vector3().subVectors(
+                            this.currentPosition, 
+                            this.lastPosition
+                        );
+                        
+                        // Move back by setting position to last valid position
+                        rig.setAttribute('position', {
+                            x: rigPosition.x - direction.x,
+                            y: rigPosition.y,
+                            z: rigPosition.z - direction.z
+                        });
+                    } else {
+                        // Update last position if no collision
+                        this.lastPosition.copy(this.currentPosition);
+                    }
                 }
             }
-        }
-    });
+        });
+    } else {
+        console.log('boundary-check component already registered, skipping');
+    }
 }
 
 // Setup interaction behaviors
 function setupInteractions() {
-    // Show info panel when clicking on artworks
-    const infoPanel = document.getElementById('info-panel');
-    const infoText = document.getElementById('info-text');
-    
-    // Show info panel when clicking interactive elements
-    function showInfo(text) {
-        infoText.setAttribute('value', text);
-        infoPanel.setAttribute('visible', true);
-        
-        // Hide after a few seconds
-        setTimeout(() => {
-            infoPanel.setAttribute('visible', false);
-        }, 4000);
-    }
-    
-    // Add hover effects and click handlers to all interactive elements
-    function setupInteractiveElements() {
-        const interactiveElements = document.querySelectorAll('.interactive');
-        interactiveElements.forEach(el => {
-            el.addEventListener('click', function() {
-                const info = this.getAttribute('data-info');
-                showInfo(info);
-            });
-            
-            // Hover effects
-            el.addEventListener('mouseenter', function() {
-                // Save original scale if not saved
-                if (!this.dataset.originalScale) {
-                    this.dataset.originalScale = this.getAttribute('scale') || "1 1 1";
-                }
-                this.setAttribute('scale', '1.05 1.05 1.05');
-            });
-            
-            el.addEventListener('mouseleave', function() {
-                // Restore original scale
-                if (this.dataset.originalScale) {
-                    this.setAttribute('scale', this.dataset.originalScale);
-                } else {
-                    this.setAttribute('scale', '1 1 1');
-                }
-            });
-        });
-    }
-    
-    // Monitor DOM for new interactive elements and set them up
-    const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-            if (mutation.type === 'childList' && mutation.addedNodes.length) {
-                setupInteractiveElements();
-            }
-        });
-    });
-    
-    // Start observing the scene for added nodes
-    observer.observe(document.querySelector('a-scene'), { childList: true, subtree: true });
-    
-    // Initial setup for existing elements
-    setupInteractiveElements();
+    // Artwork interactivity removed.
 }
