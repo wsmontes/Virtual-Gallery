@@ -7,62 +7,39 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Error handling system initialized");
     
-    // Add global error handler for the gallery
-    window.galleryErrorHandler = {
+    window.GalleryErrorHandler = {
         errors: [],
-        
-        // Log errors and attempt recovery
-        handleError: function(context, error) {
-            const errorInfo = {
-                context: context,
-                error: error,
-                timestamp: new Date().toISOString()
-            };
-            
+        handleError(context, error) {
+            const errorInfo = { context, error, timestamp: new Date().toISOString() };
             this.errors.push(errorInfo);
-            
-            // More detailed error logging
             if (error instanceof Error) {
                 console.error(`Gallery Error in ${context}:`, error.message, error.stack);
             } else {
                 console.error(`Gallery Error in ${context}:`, error);
             }
-            
-            // Attempt recovery based on context
             this.attemptRecovery(context, error);
-            
-            // Display error indicator if in debug mode
-            if (window.galleryDebug) {
-                this.showErrorIndicator(context, error);
-            }
+            if (window.galleryDebug) this.showErrorIndicator(context, error);
         },
-        
-        // Try to recover from specific errors
-        attemptRecovery: function(context, error) {
+        attemptRecovery(context, error) {
             switch(context) {
                 case 'texture-loading':
                     console.log("Attempting texture recovery...");
                     this.recoverTextures();
                     break;
-                    
                 case 'artwork-generation':
                     console.log("Attempting artwork recovery...");
                     this.recoverArtwork();
                     break;
-                    
                 case 'lighting':
                     console.log("Attempting lighting recovery...");
                     this.recoverLighting();
                     break;
-                    
                 default:
                     console.log("No specific recovery available for:", context);
                     break;
             }
         },
-        
-        // Recovery functions
-        recoverTextures: function() {
+        recoverTextures() {
             // Apply default materials to elements if textures failed
             const elements = ['floor', 'wall-left', 'wall-right', 'wall-back', 
                              'wall-front-left', 'wall-front-right', 'wall-front-top', 'roof'];
@@ -81,8 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         },
-        
-        recoverArtwork: function() {
+        recoverArtwork() {
             // Create simple colored planes if artwork fails
             const artworkContainer = document.getElementById('gallery-items');
             if (!artworkContainer) return;
@@ -107,8 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         },
-        
-        recoverLighting: function() {
+        recoverLighting() {
             // Create basic lighting if advanced lighting fails
             const scene = document.querySelector('a-scene');
             
@@ -132,45 +107,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 scene.appendChild(directional);
             }
         },
-        
-        // Show a visual indicator that errors have occurred with more details
-        showErrorIndicator: function(context, error) {
-            // Red error indicator removed to prevent blinking red effect.
-            // If needed for debugging, uncomment the code below.
-            // let indicator = document.getElementById('error-indicator');
-            // if (!indicator) {
-            //     const scene = document.querySelector('a-scene');
-            //     if (!scene) return;
-            //     indicator = document.createElement('a-entity');
-            //     indicator.id = 'error-indicator';
-            //     indicator.setAttribute('position', '0 0.1 -1');
-            //     const errorMessage = typeof error === 'string' ?
-            //         error : (error instanceof Error ? error.message : 'Unknown error');
-            //     indicator.setAttribute('text', `value: Error in ${context}: ${errorMessage.slice(0, 50)}...; color: red; align: center; width: 2`);
-            //     scene.appendChild(indicator);
-            //     setTimeout(() => { indicator.setAttribute('visible', 'false'); }, 10000);
-            // }
+        showErrorIndicator(context, error) {
+            // (Optional debug visual indicator code; kept commented)
             return;
         }
     };
     
-    // Commented out the global error event listener to prevent red blinking error indicators
-    // window.addEventListener('error', function(e) {
-    //     if (window.galleryErrorHandler) {
-    //         const context = e.filename ? `${e.filename}:${e.lineno}:${e.colno}` : 'window';
-    //         let errorDetails = e.error || e.message;
-    //         if (e.message === 'Script error.' && !e.filename) {
-    //             errorDetails = 'Cross-origin script error. Check for issues with external scripts.';
-    //         }
-    //         window.galleryErrorHandler.handleError(context, errorDetails);
-    //     }
-    // });
-
-    // Instead, add a simplified error log without any visual indicator:
     window.addEventListener('error', function(e) {
         const context = e.filename ? `${e.filename}:${e.lineno}:${e.colno}` : 'window';
-        let errorDetails = e.error || e.message || 'Unknown error';
+        const errorDetails = e.error || e.message || 'Unknown error';
         console.error(`Gallery Error in ${context}:`, errorDetails);
-        // No visual indicator is created.
     });
 });

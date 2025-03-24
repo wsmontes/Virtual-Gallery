@@ -19,9 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function initializeGallery() {
-        // Setup the environment
-        setupEnvironment();
-        
+        GalleryComposition.setupEnvironment();
         // Register custom components
         registerCustomComponents();
         
@@ -29,6 +27,32 @@ document.addEventListener('DOMContentLoaded', function() {
         // addDebugElement();
     }
 });
+
+const GalleryComposition = {
+    setupEnvironment() {
+        console.log("Setting up gallery environment...");
+        // Use module methods instead of undefined helpers:
+        TextureGenerator.initializeTextures();
+        console.log("Textures initialized");
+        GalleryArchitecture.createGalleryStructure();
+        console.log("Gallery structure created");
+        applyTexturesToStructure();
+        console.log("Textures applied to structure");
+        createLighting();
+        console.log("Lighting created");
+        createInitialArtwork();
+        console.log("Initial artwork created");
+        if (typeof window.generateAdditionalArtwork === 'function') {
+            window.generateAdditionalArtwork();
+            console.log("Additional artwork generated");
+        } else {
+            console.warn("generateAdditionalArtwork function not found - skipping additional artwork generation");
+        }
+        setupInteractions();
+        console.log("Interactions setup complete");
+    },
+    // ...other grouping functions can be defined if needed...
+};
 
 // Setup the entire gallery environment
 function setupEnvironment() {
@@ -448,10 +472,10 @@ function createInitialArtwork() {
         galleryItems.appendChild(artwork);
     });
     
-    // Generate textures for initial artwork
-    createArtTexture('gallery-item-1-canvas', 'artwork1', 1);
-    createArtTexture('gallery-item-2-canvas', 'artwork2', 2);
-    createArtTexture('gallery-item-3-canvas', 'artwork3', 3);
+    // Generate textures for initial artwork using the TextureGenerator module.
+    TextureGenerator.createArtTexture('gallery-item-1-canvas', 'artwork1', 1);
+    TextureGenerator.createArtTexture('gallery-item-2-canvas', 'artwork2', 2);
+    TextureGenerator.createArtTexture('gallery-item-3-canvas', 'artwork3', 3);
 }
 
 // Register custom A-Frame components

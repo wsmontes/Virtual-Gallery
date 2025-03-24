@@ -1,103 +1,5 @@
-// Fix to ensure the additional artwork function is properly exposed globally
-
-// Explicitly define and expose the generateAdditionalArtwork function right away
-window.generateAdditionalArtwork = function() {
-    console.log("Generating additional artwork...");
-    const artworkContainer = document.getElementById('additional-artwork');
-    if (!artworkContainer) {
-        console.error("additional-artwork container not found");
-        artworkContainer = document.createElement('a-entity');
-        artworkContainer.id = 'additional-artwork';
-        document.querySelector('a-scene').appendChild(artworkContainer);
-    }
-    
-    try {
-        // Generate artworks for back wall (add more to existing)
-        createBackWallArtwork(artworkContainer);
-        
-        // Generate artworks for left wall (expanded)
-        createLeftWallArtwork(artworkContainer);
-        
-        // Generate artworks for right wall (expanded)
-        createRightWallArtwork(artworkContainer);
-        
-        // Generate artwork for front wall (entrance area)
-        createFrontWallArtwork(artworkContainer);
-        
-        // Add some decorative elements
-        addGalleryDecorations(artworkContainer);
-    } catch (e) {
-        console.error("Error generating additional artwork:", e);
-        if (window.galleryErrorHandler) {
-            window.galleryErrorHandler.handleError('artwork-generation', e);
-        }
-    }
-};
-
-// Keep the original DOMContentLoaded listener too for the case of normal flow
-document.addEventListener('DOMContentLoaded', function() {
-    // Wait for A-Frame scene to be loaded
-    const scene = document.querySelector('a-scene');
-    scene.addEventListener('loaded', function() {
-        // Generate additional artwork
-        generateAdditionalArtwork();
-    });
-    
-    // Function to generate and place additional artwork
-    function generateAdditionalArtwork() {
-        const artworkContainer = document.getElementById('additional-artwork');
-        
-        // Generate artworks for back wall (add more to existing)
-        createBackWallArtwork(artworkContainer);
-        
-        // Generate artworks for left wall (expanded)
-        createLeftWallArtwork(artworkContainer);
-        
-        // Generate artworks for right wall (expanded)
-        createRightWallArtwork(artworkContainer);
-        
-        // Generate artwork for front wall (entrance area)
-        createFrontWallArtwork(artworkContainer);
-        
-        // Add some decorative elements
-        addGalleryDecorations(artworkContainer);
-    }
-    
-    // Make the generateAdditionalArtwork function globally available
-    window.generateAdditionalArtwork = function() {
-        console.log("Generating additional artwork...");
-        const artworkContainer = document.getElementById('additional-artwork');
-        if (!artworkContainer) {
-            console.error("additional-artwork container not found");
-            return;
-        }
-        
-        try {
-            // Generate artworks for back wall (add more to existing)
-            createBackWallArtwork(artworkContainer);
-            
-            // Generate artworks for left wall (expanded)
-            createLeftWallArtwork(artworkContainer);
-            
-            // Generate artworks for right wall (expanded)
-            createRightWallArtwork(artworkContainer);
-            
-            // Generate artwork for front wall (entrance area)
-            createFrontWallArtwork(artworkContainer);
-            
-            // Add some decorative elements
-            addGalleryDecorations(artworkContainer);
-        } catch (e) {
-            console.error("Error generating additional artwork:", e);
-        }
-    };
-    
-    // Create additional artwork for back wall (adding to existing pieces)
-    function createBackWallArtwork(container) {
-        // Upper back-wall frames removed as per requirements.
-    }
-    
-    // Create artwork for left wall (expanded coverage)
+(function() {
+    // Private helper functions for artwork generation
     function createLeftWallArtwork(container) {
         // REDUCED: Fewer paintings on left wall, better spaced
         const leftWallPositions = [
@@ -121,8 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
             createArtTexture(artworkId, `leftWall${index + 1}`, index + 30);
         });
     }
-    
-    // Create artwork for right wall (expanded coverage)
+
     function createRightWallArtwork(container) {
         // REDUCED: Fewer paintings on right wall, better spaced
         const rightWallPositions = [
@@ -145,8 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
             createArtTexture(artworkId, `rightWall${index + 1}`, index + 50);
         });
     }
-    
-    // Create artwork for front wall (entrance area)
+
     function createFrontWallArtwork(container) {
         // REDUCED: Only keep the main view-line artworks (y: 2)
         const frontWallPositions = [
@@ -168,8 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             createArtTexture(artworkId, `frontWall${index + 1}`, index + 70);
         });
     }
-    
-    // Add decorative elements to gallery
+
     function addGalleryDecorations(container) {
         // Add description plaques under some artwork
         const plaquePositions = [
@@ -259,7 +158,40 @@ document.addEventListener('DOMContentLoaded', function() {
             container.appendChild(lightFixture);
         });
     }
-    
+
+    function createBackWallArtwork(container) {
+        // (Back wall artwork removed as per requirements)
+    }
+
+    // Expose the generateAdditionalArtwork function
+    window.generateAdditionalArtwork = function() {
+        console.log("Generating additional artwork...");
+        let artworkContainer = document.getElementById('additional-artwork');
+        if (!artworkContainer) {
+            artworkContainer = document.createElement('a-entity');
+            artworkContainer.id = 'additional-artwork';
+            document.querySelector('a-scene').appendChild(artworkContainer);
+        }
+        try {
+            createBackWallArtwork(artworkContainer);
+            createLeftWallArtwork(artworkContainer);
+            createRightWallArtwork(artworkContainer);
+            createFrontWallArtwork(artworkContainer);
+            addGalleryDecorations(artworkContainer);
+        } catch (e) {
+            console.error("Error generating additional artwork:", e);
+            if (window.GalleryErrorHandler) window.GalleryErrorHandler.handleError('artwork-generation', e);
+        }
+    };
+
+    // Also remain with DOMContentLoaded listener to trigger artwork generation
+    document.addEventListener('DOMContentLoaded', function() {
+        const scene = document.querySelector('a-scene');
+        scene.addEventListener('loaded', function() {
+            generateAdditionalArtwork();
+        });
+    });
+
     // Helper function to create artwork entity
     function createArtworkEntity(id, position, textureId) {
         const entity = document.createElement('a-entity');
@@ -294,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return entity;
     }
-    
+
     // Generate art textures with various styles based on seed number
     function createArtTexture(entityId, textureId, seed) {
         const canvas = document.createElement('canvas');
@@ -349,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn(`Entity ${canvasEntityId} not found for texture application`);
         }
     }
-    
+
     // Abstract expressionist style
     function createAbstractArt(ctx, canvas, seed) {
         // Background
@@ -394,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
     // Landscape art
     function createLandscapeArt(ctx, canvas, seed) {
         // Sky gradient
@@ -516,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
     // Geometric abstract art
     function createGeometricArt(ctx, canvas, seed) {
         // Background
@@ -587,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.stroke();
         }
     }
-    
+
     // Fluid/liquid art style
     function createFluidArt(ctx, canvas, seed) {
         // Background
@@ -644,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.fill();
         }
     }
-    
+
     // Pattern-based art
     function createPatternArt(ctx, canvas, seed) {
         // Background with gradient
@@ -717,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
     // Helper function to draw a star shape
     function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
         let rot = Math.PI / 2 * 3;
@@ -743,7 +675,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.lineTo(cx, cy - outerRadius);
         ctx.closePath();
     }
-    
+
     // Color helper functions
     function getRandomColor(seed) {
         const colors = [
@@ -752,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         return colors[Math.abs(seed) % colors.length];
     }
-    
+
     function getRandomLightColor(seed) {
         const colors = [
             '#ecf0f1', '#f5f5f5', '#e0e0e0', '#f0e6cc', '#d6eaf8',
@@ -760,7 +692,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         return colors[Math.abs(seed) % colors.length];
     }
-    
+
     function getRandomBlueShade(seed) {
         const blues = [
             '#2980b9', '#3498db', '#1abc9c', '#16a085', '#2c3e50',
@@ -768,7 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         return blues[Math.abs(seed) % blues.length];
     }
-    
+
     function getRandomGreenShade(seed) {
         const greens = [
             '#27ae60', '#2ecc71', '#229954', '#1E8449', '#196F3D',
@@ -776,7 +708,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         return greens[Math.abs(seed) % greens.length];
     }
-    
+
     function getRandomEarthTone(seed) {
         const earthTones = [
             '#795548', '#8D6E63', '#A1887F', '#6D4C41', '#5D4037',
@@ -784,4 +716,4 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         return earthTones[Math.abs(seed) % earthTones.length];
     }
-});
+})();
