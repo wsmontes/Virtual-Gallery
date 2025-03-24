@@ -23,35 +23,20 @@
         <button id="enter-vr-btn">Enter VR Mode</button>
     </div>
     
-    <a-scene background="color: #SKYBLUE" loading-screen="enabled: false" vr-mode-ui="enabled: true">
+    <!-- Changed SKYBLUE to a valid hex color #87CEEB for sky blue -->
+    <a-scene background="color: #87CEEB" loading-screen="enabled: false" vr-mode-ui="enabled: true" renderer="antialias: true; physicallyCorrectLights: true; colorManagement: true;">
         <!-- Assets preloading - now using empty assets section, textures will be created via code -->
-        <a-assets id="assets">
+        <a-assets id="assets" timeout="10000">
             <!-- Textures will be added programmatically -->
         </a-assets>
         
-        <!-- Complete Gallery Environment -->
-        <!-- Floor -->
-        <a-plane id="floor" position="0 0 0" rotation="-90 0 0" width="20" height="20" color="#CCCCCC"></a-plane>
+        <!-- Gallery structure will be added by gallery-architecture.js -->
+        <a-entity id="gallery-structure"></a-entity>
         
-        <!-- Walls -->
-        <a-box id="wall-left" position="-10 3 0" width="0.5" height="6" depth="20" color="#AAAAAA"></a-box>
-        <a-box id="wall-right" position="10 3 0" width="0.5" height="6" depth="20" color="#AAAAAA"></a-box>
-        <a-box id="wall-back" position="0 3 -10" width="20" height="6" depth="0.5" color="#AAAAAA"></a-box>
+        <!-- Original Gallery Items -->
+        <a-entity id="gallery-items"></a-entity>
         
-        <!-- Front wall with opening for entrance -->
-        <a-box id="wall-front-left" position="-7 3 10" width="6" height="6" depth="0.5" color="#AAAAAA"></a-box>
-        <a-box id="wall-front-right" position="7 3 10" width="6" height="6" depth="0.5" color="#AAAAAA"></a-box>
-        <a-box id="wall-front-top" position="0 5 10" width="8" height="2" depth="0.5" color="#AAAAAA"></a-box>
-        
-        <!-- Roof -->
-        <a-box id="roof" position="0 6 0" width="20" height="0.5" depth="20" color="#CCCCCC"></a-box>
-        
-        <!-- Original Gallery Items on back wall -->
-        <a-entity id="gallery-item-1" position="-5 2 -9.7" class="interactive" data-info="Artwork 1: Abstract Landscape"></a-entity>
-        <a-entity id="gallery-item-2" position="0 2 -9.7" class="interactive" data-info="Artwork 2: Digital Portrait"></a-entity>
-        <a-entity id="gallery-item-3" position="5 2 -9.7" class="interactive" data-info="Artwork 3: Modern Composition"></a-entity>
-        
-        <!-- Additional Gallery Items will be added from gallery-artwork.js -->
+        <!-- Additional Gallery Items -->
         <a-entity id="additional-artwork"></a-entity>
         
         <!-- Info panel that appears when clicking on images -->
@@ -60,7 +45,7 @@
             <a-text id="info-text" value="" align="center" color="white" width="2" position="0 0 0.01"></a-text>
         </a-entity>
         
-        <!-- Camera and controls with collision detection -->
+        <!-- Camera and controls -->
         <a-entity id="rig" position="0 1.6 7" movement-controls="constrainToNavMesh: false; speed: 0.2;">
             <a-entity id="camera" camera look-controls="pointerLockEnabled: true"
                      position="0 0 0"
@@ -69,20 +54,16 @@
             </a-entity>
         </a-entity>
         
-        <!-- Ambient light -->
-        <a-light type="ambient" intensity="0.5"></a-light>
-        <a-light type="directional" position="1 1 1" intensity="0.8"></a-light>
-        
-        <!-- Invisible boundary planes to prevent walking through walls -->
-        <a-box id="boundary-left" position="-9.5 1.5 0" width="0.1" height="3" depth="19" opacity="0" class="boundary"></a-box>
-        <a-box id="boundary-right" position="9.5 1.5 0" width="0.1" height="3" depth="19" opacity="0" class="boundary"></a-box>
-        <a-box id="boundary-back" position="0 1.5 -9.5" width="19" height="3" depth="0.1" opacity="0" class="boundary"></a-box>
-        <a-box id="boundary-front-left" position="-7 1.5 9.5" width="6" height="3" depth="0.1" opacity="0" class="boundary"></a-box>
-        <a-box id="boundary-front-right" position="7 1.5 9.5" width="6" height="3" depth="0.1" opacity="0" class="boundary"></a-box>
+        <!-- Lighting will be added by gallery-composition.js -->
+        <a-entity id="gallery-lighting"></a-entity>
     </a-scene>
     
     <!-- Scripts -->
-    <script src="app.js"></script>
+    <script src="gallery-error-handling.js"></script>
+    <script src="textures.js"></script>
+    <script src="gallery-architecture.js"></script>
+    <script src="gallery-composition.js"></script>
     <script src="gallery-artwork.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

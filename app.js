@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Check for WebXR support
+    console.log("App.js: Document loaded");
+    
+    // Add WebXR support check
     const isXRSupported = navigator.xr !== undefined;
-    const isVRSupported = isXRSupported ? true : false; // Simplified check
+    const isVRSupported = isXRSupported ? true : false; // Define the missing variable
+    console.log("WebXR supported:", isXRSupported);
     
     // Elements
     const loadingScreen = document.getElementById('loading-screen');
@@ -10,13 +13,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const infoPanel = document.getElementById('info-panel');
     const infoText = document.getElementById('info-text');
     
-    // Generate textures
-    generateTextures();
+    // Add visibility debug flag
+    window.galleryDebug = true;
     
     // Handle loading
     window.addEventListener('load', function() {
+        console.log("App.js: Window loaded");
         setTimeout(() => {
             loadingScreen.style.display = 'none';
+            
+            // Show the non-VR info overlay
+            if (nonVrInfo) {
+                nonVrInfo.style.display = 'block';
+            }
+            
+            // Check if gallery structures are visible
+            setTimeout(checkGalleryVisibility, 2000);
+            
             if (!isVRSupported) {
                 console.log('WebXR not fully supported - using fallback mode');
                 showFallbackMessage();
@@ -41,6 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
     scene.addEventListener('loaded', function() {
         console.log('A-Frame scene loaded');
         nonVrInfo.style.display = 'block';
+        
+        // IMPORTANT: Generate textures after scene is loaded
+        generateTextures();
         
         // VR mode detection
         scene.addEventListener('enter-vr', function() {
@@ -124,19 +140,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Generate all textures programmatically
     function generateTextures() {
-        // Create floor texture
+        // Create textures and add to assets
         createFloorTexture();
-        
-        // Create wall texture
         createWallTexture();
+        createRoofTexture();
         
-        // Create artwork textures
+        // Create initial artwork textures
+        createInitialArtworkTextures();
+    }
+    
+    // Create initial artwork textures
+    function createInitialArtworkTextures() {
         createArtwork1();
         createArtwork2();
         createArtwork3();
-        
-        // Create roof texture
-        createRoofTexture();
     }
     
     // Create floor texture - wood pattern
@@ -296,10 +313,13 @@ document.addEventListener('DOMContentLoaded', function() {
         img.src = dataUrl;
         assets.appendChild(img);
         
-        // Create the plane with the texture
-        const artwork = document.getElementById('gallery-item-1');
-        artwork.setAttribute('geometry', 'primitive: plane; width: 3; height: 2');
-        artwork.setAttribute('material', 'src: #artwork1');
+        // Apply texture safely
+        setTimeout(() => {
+            const artwork = document.getElementById('gallery-item-1');
+            if (artwork) {
+                artwork.setAttribute('material', 'src: #artwork1');
+            }
+        }, 100);
     }
     
     // Create digital portrait artwork
@@ -369,10 +389,13 @@ document.addEventListener('DOMContentLoaded', function() {
         img.src = dataUrl;
         assets.appendChild(img);
         
-        // Create the plane with the texture
-        const artwork = document.getElementById('gallery-item-2');
-        artwork.setAttribute('geometry', 'primitive: plane; width: 3; height: 2');
-        artwork.setAttribute('material', 'src: #artwork2');
+        // Apply texture safely
+        setTimeout(() => {
+            const artwork = document.getElementById('gallery-item-2');
+            if (artwork) {
+                artwork.setAttribute('material', 'src: #artwork2');
+            }
+        }, 100);
     }
     
     // Create modern composition artwork
@@ -442,10 +465,13 @@ document.addEventListener('DOMContentLoaded', function() {
         img.src = dataUrl;
         assets.appendChild(img);
         
-        // Create the plane with the texture
-        const artwork = document.getElementById('gallery-item-3');
-        artwork.setAttribute('geometry', 'primitive: plane; width: 3; height: 2');
-        artwork.setAttribute('material', 'src: #artwork3');
+        // Apply texture safely
+        setTimeout(() => {
+            const artwork = document.getElementById('gallery-item-3');
+            if (artwork) {
+                artwork.setAttribute('material', 'src: #artwork3');
+            }
+        }, 100);
     }
     
     // Create roof texture - ceiling pattern
@@ -566,9 +592,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
     
-    // Performance monitoring
+    // Performance monitoring with optimizations
     let lastTime = 0;
     let frameCount = 0;
+    let performanceMode = 'normal'; // Can be 'normal', 'reduced', 'minimal'
     
     function checkPerformance(time) {
         frameCount++;
@@ -577,9 +604,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const fps = Math.round((frameCount * 1000) / (time - lastTime));
             console.log(`Current FPS: ${fps}`);
             
-            if (fps < 30) {
+            // Only log poor performance if it's really poor (below 20) to reduce console clutter
+            if (fps < 20) {
                 console.warn('Performance warning: FPS below target');
-                // Could implement quality reduction here
+                
+                // Apply performance optimizations if FPS is consistently low
+                if (fps < 15 && performanceMode === 'normal') {
+                    applyPerformanceOptimization('reduced');
+                } else if (fps < 10 && performanceMode === 'reduced') {
+                    applyPerformanceOptimization('minimal');
+                }
             }
             
             frameCount = 0;
@@ -589,5 +623,122 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(checkPerformance);
     }
     
+    // New function to optimize performance when needed
+    function applyPerformanceOptimization(mode) {
+        if (performanceMode === mode) return; // Already in this mode
+        
+        console.log(`Applying performance optimization: ${mode}`);
+        performanceMode = mode;
+        
+        const scene = document.querySelector('a-scene');
+        
+        if (mode === 'reduced') {
+            // Reduce draw distance by adding fog
+            scene.setAttribute('fog', 'type: linear; color: #87CEEB; near: 5; far: 15');
+            
+            // Reduce light intensity
+            document.querySelectorAll('a-light[type="spot"]').forEach(light => {
+                light.setAttribute('intensity', '0.5');
+            });
+            
+        } else if (mode === 'minimal') {
+            // More aggressive fog
+            scene.setAttribute('fog', 'type: linear; color: #87CEEB; near: 2; far: 10');
+            
+            // Further reduce lighting
+            document.querySelectorAll('a-light[type="spot"]').forEach(light => {
+                light.setAttribute('intensity', '0.3');
+            });
+            
+            // Hide some decorative elements
+            document.querySelectorAll('[id^="plant-"]').forEach(el => {
+                el.setAttribute('visible', 'false');
+            });
+        }
+    }
+    
     requestAnimationFrame(checkPerformance);
+    
+    // Debug function to check gallery visibility
+    function checkGalleryVisibility() {
+        const galleryElements = [
+            'floor', 'wall-left', 'wall-right', 'wall-back', 
+            'wall-front-left', 'wall-front-right', 'wall-front-top', 'roof'
+        ];
+        
+        console.log("Checking gallery visibility...");
+        let visibleCount = 0;
+        
+        galleryElements.forEach(elementId => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                visibleCount++;
+                console.log(`Element ${elementId} exists`);
+                
+                // Add debug highlight to ensure element is visible
+                if (window.galleryDebug) {
+                    // Add blinking animation temporarily
+                    const originalMaterial = element.getAttribute('material');
+                    
+                    element.setAttribute('animation__debug', {
+                        property: 'material.color',
+                        from: '#FF0000',
+                        to: originalMaterial && originalMaterial.color 
+                            ? originalMaterial.color 
+                            : '#FFFFFF',
+                        dur: 1000,
+                        dir: 'alternate',
+                        loop: 3
+                    });
+                    
+                    // Remove debug animation after 3 seconds
+                    setTimeout(() => {
+                        element.removeAttribute('animation__debug');
+                    }, 3000);
+                }
+            } else {
+                console.warn(`Element ${elementId} not found`);
+            }
+        });
+        
+        console.log(`Gallery visibility check: ${visibleCount}/${galleryElements.length} elements found`);
+        
+        // If no elements are visible, try to rebuild the gallery
+        if (visibleCount === 0) {
+            console.warn("No gallery elements found, attempting to rebuild");
+            if (typeof createGalleryStructure === 'function') {
+                createGalleryStructure();
+            } else {
+                console.error("createGalleryStructure function not available");
+                createFallbackMessage();
+            }
+        }
+    }
+    
+    // Create a fallback message if gallery isn't visible
+    function createFallbackMessage() {
+        const fallbackMsg = document.createElement('div');
+        fallbackMsg.style.position = 'fixed';
+        fallbackMsg.style.top = '50%';
+        fallbackMsg.style.left = '50%';
+        fallbackMsg.style.transform = 'translate(-50%, -50%)';
+        fallbackMsg.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        fallbackMsg.style.color = 'white';
+        fallbackMsg.style.padding = '20px';
+        fallbackMsg.style.borderRadius = '10px';
+        fallbackMsg.style.zIndex = '9999';
+        fallbackMsg.innerHTML = `
+            <h2>Gallery Loading Issue</h2>
+            <p>There seems to be a problem loading the gallery elements.</p>
+            <p>Please try refreshing the page.</p>
+            <button id="reload-btn" style="padding: 10px; margin-top: 10px; cursor: pointer;">
+                Reload Page
+            </button>
+        `;
+        document.body.appendChild(fallbackMsg);
+        
+        document.getElementById('reload-btn').addEventListener('click', function() {
+            window.location.reload();
+        });
+    }
 });

@@ -10,69 +10,338 @@ document.addEventListener('DOMContentLoaded', function() {
     function generateAdditionalArtwork() {
         const artworkContainer = document.getElementById('additional-artwork');
         
-        // Generate artworks for left wall
+        // Generate artworks for back wall (add more to existing)
+        createBackWallArtwork(artworkContainer);
+        
+        // Generate artworks for left wall (expanded)
         createLeftWallArtwork(artworkContainer);
         
-        // Generate artworks for right wall
+        // Generate artworks for right wall (expanded)
         createRightWallArtwork(artworkContainer);
         
         // Generate artwork for front wall (entrance area)
         createFrontWallArtwork(artworkContainer);
+        
+        // Generate artwork for corners
+        createCornerArtwork(artworkContainer);
+        
+        // Add some decorative elements
+        addGalleryDecorations(artworkContainer);
     }
     
-    // Create artwork for left wall
-    function createLeftWallArtwork(container) {
-        // Create 3 paintings on the left wall
-        const leftWallPositions = [
-            { x: -9.7, y: 2, z: -5, rotation: "0 90 0", info: "Left Wall Artwork 1: Urban Cityscape" },
-            { x: -9.7, y: 2, z: 0, rotation: "0 90 0", info: "Left Wall Artwork 2: Moonlit Forest" },
-            { x: -9.7, y: 2, z: 5, rotation: "0 90 0", info: "Left Wall Artwork 3: Ocean Waves" }
+    // Make the generateAdditionalArtwork function globally available
+    window.generateAdditionalArtwork = function() {
+        console.log("Generating additional artwork...");
+        const artworkContainer = document.getElementById('additional-artwork');
+        if (!artworkContainer) {
+            console.error("additional-artwork container not found");
+            return;
+        }
+        
+        try {
+            // Generate artworks for back wall (add more to existing)
+            createBackWallArtwork(artworkContainer);
+            
+            // Generate artworks for left wall (expanded)
+            createLeftWallArtwork(artworkContainer);
+            
+            // Generate artworks for right wall (expanded)
+            createRightWallArtwork(artworkContainer);
+            
+            // Generate artwork for front wall (entrance area)
+            createFrontWallArtwork(artworkContainer);
+            
+            // Generate artwork for corners
+            createCornerArtwork(artworkContainer);
+            
+            // Add some decorative elements
+            addGalleryDecorations(artworkContainer);
+        } catch (e) {
+            console.error("Error generating additional artwork:", e);
+        }
+    };
+    
+    // Create additional artwork for back wall (adding to existing pieces)
+    function createBackWallArtwork(container) {
+        // Add 4 more smaller paintings on the back wall (2 rows)
+        const backWallPositionsRow1 = [
+            { x: -7.5, y: 3.5, z: -9.7, rotation: "0 0 0", scale: "1.5 1 1", info: "Back Wall Upper Left: Cosmic Dreams" },
+            { x: -2.5, y: 3.5, z: -9.7, rotation: "0 0 0", scale: "1.5 1 1", info: "Back Wall Upper Center-Left: Nebula Exploration" },
+            { x: 2.5, y: 3.5, z: -9.7, rotation: "0 0 0", scale: "1.5 1 1", info: "Back Wall Upper Center-Right: Galactic Vortex" },
+            { x: 7.5, y: 3.5, z: -9.7, rotation: "0 0 0", scale: "1.5 1 1", info: "Back Wall Upper Right: Star Formation" }
         ];
         
+        // Create smaller artworks in top row
+        backWallPositionsRow1.forEach((pos, index) => {
+            const artworkId = `back-wall-upper-art-${index + 1}`;
+            const artwork = createArtworkEntity(artworkId, pos, `backWallUpper${index + 1}`);
+            container.appendChild(artwork);
+            
+            // Generate the texture for this artwork
+            createArtTexture(artworkId, `backWallUpper${index + 1}`, index + 20);
+        });
+        
+        // Add very small artwork between existing ones
+        const smallArtPositions = [
+            { x: -7.5, y: 1, z: -9.7, rotation: "0 0 0", scale: "1 0.8 1", info: "Back Wall Mini 1: Abstract Miniature" },
+            { x: -2.5, y: 1, z: -9.7, rotation: "0 0 0", scale: "1 0.8 1", info: "Back Wall Mini 2: Geometric Study" },
+            { x: 2.5, y: 1, z: -9.7, rotation: "0 0 0", scale: "1 0.8 1", info: "Back Wall Mini 3: Monochrome Sketch" },
+            { x: 7.5, y: 1, z: -9.7, rotation: "0 0 0", scale: "1 0.8 1", info: "Back Wall Mini 4: Color Theory" },
+        ];
+        
+        // Create mini artworks in bottom area
+        smallArtPositions.forEach((pos, index) => {
+            const artworkId = `back-wall-mini-art-${index + 1}`;
+            const artwork = createArtworkEntity(artworkId, pos, `backWallMini${index + 1}`);
+            container.appendChild(artwork);
+            
+            // Generate the texture for this artwork
+            createArtTexture(artworkId, `backWallMini${index + 1}`, index + 24);
+        });
+    }
+    
+    // Create artwork for left wall (expanded coverage)
+    function createLeftWallArtwork(container) {
+        // Add more paintings distributed along the left wall
+        const leftWallPositions = [
+            // Existing positions
+            { x: -9.7, y: 2, z: -5, rotation: "0 90 0", scale: "1 1 1", info: "Left Wall Artwork 1: Urban Cityscape" },
+            { x: -9.7, y: 2, z: 0, rotation: "0 90 0", scale: "1 1 1", info: "Left Wall Artwork 2: Moonlit Forest" },
+            { x: -9.7, y: 2, z: 5, rotation: "0 90 0", scale: "1 1 1", info: "Left Wall Artwork 3: Ocean Waves" },
+            
+            // New positions added to fill the wall
+            { x: -9.7, y: 2, z: -8, rotation: "0 90 0", scale: "1 1 1", info: "Left Wall Artwork 4: Mountain Vista" },
+            { x: -9.7, y: 2, z: -2.5, rotation: "0 90 0", scale: "1 1 1", info: "Left Wall Artwork 5: Autumn Forest" },
+            { x: -9.7, y: 2, z: 2.5, rotation: "0 90 0", scale: "1 1 1", info: "Left Wall Artwork 6: Spring Meadow" },
+            { x: -9.7, y: 2, z: 8, rotation: "0 90 0", scale: "1 1 1", info: "Left Wall Artwork 7: Winter Scene" }
+        ];
+        
+        // Clear previous artwork for this wall to avoid duplicates
+        document.querySelectorAll('[id^="left-wall-art-"]').forEach(el => el.remove());
+        
+        // Create all artworks for left wall
         leftWallPositions.forEach((pos, index) => {
             const artworkId = `left-wall-art-${index + 1}`;
             const artwork = createArtworkEntity(artworkId, pos, `leftWall${index + 1}`);
             container.appendChild(artwork);
             
             // Generate the texture for this artwork
-            createArtTexture(artworkId, `leftWall${index + 1}`, index + 4);
+            createArtTexture(artworkId, `leftWall${index + 1}`, index + 30);
+        });
+        
+        // Add a second row of smaller artwork on the left wall
+        const leftWallUpperPositions = [
+            { x: -9.7, y: 4, z: -6.5, rotation: "0 90 0", scale: "0.8 0.8 1", info: "Left Wall Upper 1: Abstract Study" },
+            { x: -9.7, y: 4, z: -3.5, rotation: "0 90 0", scale: "0.8 0.8 1", info: "Left Wall Upper 2: Geometrical Patterns" },
+            { x: -9.7, y: 4, z: -1, rotation: "0 90 0", scale: "0.8 0.8 1", info: "Left Wall Upper 3: Minimalist Composition" },
+            { x: -9.7, y: 4, z: 1, rotation: "0 90 0", scale: "0.8 0.8 1", info: "Left Wall Upper 4: Color Field" },
+            { x: -9.7, y: 4, z: 3.5, rotation: "0 90 0", scale: "0.8 0.8 1", info: "Left Wall Upper 5: Linear Study" },
+            { x: -9.7, y: 4, z: 6.5, rotation: "0 90 0", scale: "0.8 0.8 1", info: "Left Wall Upper 6: Texture Exploration" }
+        ];
+        
+        // Create upper row artworks
+        leftWallUpperPositions.forEach((pos, index) => {
+            const artworkId = `left-wall-upper-art-${index + 1}`;
+            const artwork = createArtworkEntity(artworkId, pos, `leftWallUpper${index + 1}`);
+            container.appendChild(artwork);
+            
+            // Generate the texture for this artwork
+            createArtTexture(artworkId, `leftWallUpper${index + 1}`, index + 40);
         });
     }
     
-    // Create artwork for right wall
+    // Create artwork for right wall (expanded coverage)
     function createRightWallArtwork(container) {
-        // Create 3 paintings on the right wall
+        // Add more paintings distributed along the right wall
         const rightWallPositions = [
-            { x: 9.7, y: 2, z: -5, rotation: "0 -90 0", info: "Right Wall Artwork 1: Desert Sunset" },
-            { x: 9.7, y: 2, z: 0, rotation: "0 -90 0", info: "Right Wall Artwork 2: Mountain Range" },
-            { x: 9.7, y: 2, z: 5, rotation: "0 -90 0", info: "Right Wall Artwork 3: Misty Valley" }
+            // Existing positions
+            { x: 9.7, y: 2, z: -5, rotation: "0 -90 0", scale: "1 1 1", info: "Right Wall Artwork 1: Desert Sunset" },
+            { x: 9.7, y: 2, z: 0, rotation: "0 -90 0", scale: "1 1 1", info: "Right Wall Artwork 2: Mountain Range" },
+            { x: 9.7, y: 2, z: 5, rotation: "0 -90 0", scale: "1 1 1", info: "Right Wall Artwork 3: Misty Valley" },
+            
+            // New positions added to fill the wall
+            { x: 9.7, y: 2, z: -8, rotation: "0 -90 0", scale: "1 1 1", info: "Right Wall Artwork 4: Tropical Beach" },
+            { x: 9.7, y: 2, z: -2.5, rotation: "0 -90 0", scale: "1 1 1", info: "Right Wall Artwork 5: Desert Night" },
+            { x: 9.7, y: 2, z: 2.5, rotation: "0 -90 0", scale: "1 1 1", info: "Right Wall Artwork 6: Glacial Lake" },
+            { x: 9.7, y: 2, z: 8, rotation: "0 -90 0", scale: "1 1 1", info: "Right Wall Artwork 7: Canyon View" }
         ];
         
+        // Clear previous artwork for this wall to avoid duplicates
+        document.querySelectorAll('[id^="right-wall-art-"]').forEach(el => el.remove());
+        
+        // Create all artworks for right wall
         rightWallPositions.forEach((pos, index) => {
             const artworkId = `right-wall-art-${index + 1}`;
             const artwork = createArtworkEntity(artworkId, pos, `rightWall${index + 1}`);
             container.appendChild(artwork);
             
             // Generate the texture for this artwork
-            createArtTexture(artworkId, `rightWall${index + 1}`, index + 7);
+            createArtTexture(artworkId, `rightWall${index + 1}`, index + 50);
+        });
+        
+        // Add a second row of smaller artwork on the right wall
+        const rightWallUpperPositions = [
+            { x: 9.7, y: 4, z: -6.5, rotation: "0 -90 0", scale: "0.8 0.8 1", info: "Right Wall Upper 1: Cubist Arrangement" },
+            { x: 9.7, y: 4, z: -3.5, rotation: "0 -90 0", scale: "0.8 0.8 1", info: "Right Wall Upper 2: Surreal Landscape" },
+            { x: 9.7, y: 4, z: -1, rotation: "0 -90 0", scale: "0.8 0.8 1", info: "Right Wall Upper 3: Abstract Portrait" },
+            { x: 9.7, y: 4, z: 1, rotation: "0 -90 0", scale: "0.8 0.8 1", info: "Right Wall Upper 4: Futuristic City" },
+            { x: 9.7, y: 4, z: 3.5, rotation: "0 -90 0", scale: "0.8 0.8 1", info: "Right Wall Upper 5: Cosmic Event" },
+            { x: 9.7, y: 4, z: 6.5, rotation: "0 -90 0", scale: "0.8 0.8 1", info: "Right Wall Upper 6: Digital Abstraction" }
+        ];
+        
+        // Create upper row artworks
+        rightWallUpperPositions.forEach((pos, index) => {
+            const artworkId = `right-wall-upper-art-${index + 1}`;
+            const artwork = createArtworkEntity(artworkId, pos, `rightWallUpper${index + 1}`);
+            container.appendChild(artwork);
+            
+            // Generate the texture for this artwork
+            createArtTexture(artworkId, `rightWallUpper${index + 1}`, index + 60);
         });
     }
     
     // Create artwork for front wall (entrance area)
     function createFrontWallArtwork(container) {
-        // Create 2 paintings on the front wall sides
+        // Create paintings on the front wall sides (expanded)
         const frontWallPositions = [
-            { x: -7, y: 2, z: 9.7, rotation: "0 180 0", info: "Entrance Artwork 1: Welcome to VR Gallery" },
-            { x: 7, y: 2, z: 9.7, rotation: "0 180 0", info: "Entrance Artwork 2: Digital Explorations" }
+            // Original positions
+            { x: -7, y: 2, z: 9.7, rotation: "0 180 0", scale: "1 1 1", info: "Entrance Artwork 1: Welcome to VR Gallery" },
+            { x: 7, y: 2, z: 9.7, rotation: "0 180 0", scale: "1 1 1", info: "Entrance Artwork 2: Digital Explorations" },
+            
+            // Added artwork
+            { x: -7, y: 4, z: 9.7, rotation: "0 180 0", scale: "1 1 1", info: "Entrance Upper Left: Gallery Map" },
+            { x: 7, y: 4, z: 9.7, rotation: "0 180 0", scale: "1 1 1", info: "Entrance Upper Right: Gallery Information" },
+            { x: -5, y: 2, z: 9.7, rotation: "0 180 0", scale: "0.7 0.7 1", info: "Entrance Side 1: Exhibition Theme" },
+            { x: 5, y: 2, z: 9.7, rotation: "0 180 0", scale: "0.7 0.7 1", info: "Entrance Side 2: Coming Attractions" }
         ];
         
+        // Clear previous artwork for this wall to avoid duplicates
+        document.querySelectorAll('[id^="front-wall-art-"]').forEach(el => el.remove());
+        
+        // Create all artworks for front wall
         frontWallPositions.forEach((pos, index) => {
             const artworkId = `front-wall-art-${index + 1}`;
             const artwork = createArtworkEntity(artworkId, pos, `frontWall${index + 1}`);
             container.appendChild(artwork);
             
             // Generate the texture for this artwork
-            createArtTexture(artworkId, `frontWall${index + 1}`, index + 10);
+            createArtTexture(artworkId, `frontWall${index + 1}`, index + 70);
+        });
+    }
+    
+    // Create artwork for corner areas
+    function createCornerArtwork(container) {
+        // Corner artwork positions
+        const cornerPositions = [
+            // Back-left corner
+            { x: -9.5, y: 2, z: -9.5, rotation: "0 45 0", scale: "0.8 0.8 1", info: "Corner Artwork 1: Perspective Study" },
+            // Back-right corner
+            { x: 9.5, y: 2, z: -9.5, rotation: "0 -45 0", scale: "0.8 0.8 1", info: "Corner Artwork 2: Optical Illusion" },
+            // Front-left corner (near entrance)
+            { x: -9.5, y: 2, z: 9.5, rotation: "0 135 0", scale: "0.8 0.8 1", info: "Corner Artwork 3: Welcome Art" },
+            // Front-right corner (near entrance)
+            { x: 9.5, y: 2, z: 9.5, rotation: "0 -135 0", scale: "0.8 0.8 1", info: "Corner Artwork 4: Exit Piece" }
+        ];
+        
+        // Create corner artworks
+        cornerPositions.forEach((pos, index) => {
+            const artworkId = `corner-art-${index + 1}`;
+            const artwork = createArtworkEntity(artworkId, pos, `cornerArt${index + 1}`);
+            container.appendChild(artwork);
+            
+            // Generate the texture for this artwork
+            createArtTexture(artworkId, `cornerArt${index + 1}`, index + 80);
+        });
+    }
+    
+    // Add decorative elements to gallery
+    function addGalleryDecorations(container) {
+        // Add description plaques under some artwork
+        const plaquePositions = [
+            { x: -5, y: 0.8, z: -9.6, rotation: "0 0 0", width: 1, height: 0.3, 
+              text: "Abstract Landscape: A study in color and form representing nature's elements." },
+            { x: 0, y: 0.8, z: -9.6, rotation: "0 0 0", width: 1, height: 0.3, 
+              text: "Digital Portrait: Contemporary exploration of human features through digital medium." },
+            { x: 5, y: 0.8, z: -9.6, rotation: "0 0 0", width: 1, height: 0.3, 
+              text: "Modern Composition: Geometric abstraction of everyday objects and concepts." }
+        ];
+        
+        // Create plaques with descriptions
+        plaquePositions.forEach((pos, index) => {
+            const plaqueId = `description-plaque-${index + 1}`;
+            
+            // Create plaque background
+            const plaque = document.createElement('a-entity');
+            plaque.id = plaqueId;
+            plaque.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
+            plaque.setAttribute('rotation', pos.rotation);
+            
+            // Add plaque background
+            const plaqueBackground = document.createElement('a-plane');
+            plaqueBackground.setAttribute('width', pos.width);
+            plaqueBackground.setAttribute('height', pos.height);
+            plaqueBackground.setAttribute('color', '#555555');
+            
+            // Add text to plaque
+            const plaqueText = document.createElement('a-text');
+            plaqueText.setAttribute('value', pos.text);
+            plaqueText.setAttribute('align', 'center');
+            plaqueText.setAttribute('width', pos.width * 0.9);
+            plaqueText.setAttribute('color', 'white');
+            plaqueText.setAttribute('position', '0 0 0.01');
+            plaqueText.setAttribute('wrap-count', '30');
+            plaqueText.setAttribute('font', 'dejavu');
+            plaqueText.setAttribute('scale', '0.25 0.25 0.25');
+            
+            // Combine elements
+            plaque.appendChild(plaqueBackground);
+            plaque.appendChild(plaqueText);
+            container.appendChild(plaque);
+        });
+        
+        // Add hanging lights
+        const lightPositions = [
+            { x: -5, y: 5, z: -5, color: "#FFFFAA" },
+            { x: 5, y: 5, z: -5, color: "#FFFFAA" },
+            { x: -5, y: 5, z: 5, color: "#FFFFAA" },
+            { x: 5, y: 5, z: 5, color: "#FFFFAA" },
+            { x: 0, y: 5, z: 0, color: "#FFFFFF" }  // Center light
+        ];
+        
+        // Create hanging lights
+        lightPositions.forEach((pos, index) => {
+            const lightId = `hanging-light-${index + 1}`;
+            
+            // Light fixture
+            const lightFixture = document.createElement('a-entity');
+            lightFixture.id = lightId;
+            lightFixture.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
+            
+            // Wire for hanging light
+            const wire = document.createElement('a-cylinder');
+            wire.setAttribute('radius', '0.02');
+            wire.setAttribute('height', '1');
+            wire.setAttribute('color', '#333333');
+            wire.setAttribute('position', '0 0.5 0');
+            
+            // Light bulb
+            const bulb = document.createElement('a-sphere');
+            bulb.setAttribute('radius', '0.1');
+            bulb.setAttribute('color', '#FFFF88');
+            bulb.setAttribute('position', '0 0 0');
+            
+            // Actual light source
+            const light = document.createElement('a-light');
+            light.setAttribute('type', 'point');
+            light.setAttribute('color', pos.color);
+            light.setAttribute('intensity', '0.7');
+            light.setAttribute('distance', '10');
+            
+            // Combine elements
+            lightFixture.appendChild(wire);
+            lightFixture.appendChild(bulb);
+            lightFixture.appendChild(light);
+            container.appendChild(lightFixture);
         });
     }
     
@@ -82,6 +351,12 @@ document.addEventListener('DOMContentLoaded', function() {
         entity.id = id;
         entity.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
         entity.setAttribute('rotation', position.rotation);
+        
+        // Apply scale if provided
+        if (position.scale) {
+            entity.setAttribute('scale', position.scale);
+        }
+        
         entity.setAttribute('class', 'interactive');
         entity.setAttribute('data-info', position.info);
         entity.setAttribute('geometry', 'primitive: plane; width: 3; height: 2');
