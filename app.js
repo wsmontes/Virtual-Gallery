@@ -54,6 +54,74 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Register custom component for boundary collision detection
+    AFRAME.registerComponent('boundary-check', {
+        init: function() {
+            this.camera = this.el;
+            this.boundaries = document.querySelectorAll('.boundary');
+            this.speed = 0.2;
+            this.canMove = true;
+            this.lastPosition = new THREE.Vector3();
+            this.currentPosition = new THREE.Vector3();
+            
+            // Store initial position
+            this.camera.object3D.getWorldPosition(this.lastPosition);
+            this.currentPosition.copy(this.lastPosition);
+        },
+        
+        tick: function() {
+            // Store current position
+            this.camera.object3D.getWorldPosition(this.currentPosition);
+            
+            // If position has changed, check boundaries
+            if (!this.currentPosition.equals(this.lastPosition)) {
+                // Check collision with each boundary
+                let collision = false;
+                const cameraPosition = this.currentPosition.clone();
+                
+                // Create a bounding box for the camera
+                const cameraBoundingBox = new THREE.Box3();
+                cameraBoundingBox.setFromCenterAndSize(
+                    cameraPosition, 
+                    new THREE.Vector3(0.5, 0.5, 0.5)
+                );
+                
+                // Check for collisions with boundaries
+                this.boundaries.forEach(boundary => {
+                    const boundaryEl = boundary.object3D;
+                    const boundaryBox = new THREE.Box3().setFromObject(boundaryEl);
+                    
+                    if (cameraBoundingBox.intersectsBox(boundaryBox)) {
+                        collision = true;
+                    }
+                });
+                
+                // If collision detected, revert to previous position
+                if (collision) {
+                    const rig = document.getElementById('rig');
+                    const rigPosition = new THREE.Vector3();
+                    rig.object3D.getWorldPosition(rigPosition);
+                    
+                    // Calculate movement direction
+                    const direction = new THREE.Vector3().subVectors(
+                        this.currentPosition, 
+                        this.lastPosition
+                    );
+                    
+                    // Move back by setting position to last valid position
+                    rig.setAttribute('position', {
+                        x: rigPosition.x - direction.x,
+                        y: rigPosition.y,
+                        z: rigPosition.z - direction.z
+                    });
+                } else {
+                    // Update last position if no collision
+                    this.lastPosition.copy(this.currentPosition);
+                }
+            }
+        }
+    });
+    
     // Generate all textures programmatically
     function generateTextures() {
         // Create floor texture
@@ -66,6 +134,9 @@ document.addEventListener('DOMContentLoaded', function() {
         createArtwork1();
         createArtwork2();
         createArtwork3();
+        
+        // Create roof texture
+        createRoofTexture();
     }
     
     // Create floor texture - wood pattern
@@ -375,6 +446,78 @@ document.addEventListener('DOMContentLoaded', function() {
         const artwork = document.getElementById('gallery-item-3');
         artwork.setAttribute('geometry', 'primitive: plane; width: 3; height: 2');
         artwork.setAttribute('material', 'src: #artwork3');
+    }
+    
+    // Create roof texture - ceiling pattern
+    function createRoofTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        
+        // Base color
+        ctx.fillStyle = '#F5F5F5';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Create ceiling tile pattern
+        ctx.strokeStyle = '#DDDDDD';
+        ctx.lineWidth = 2;
+        
+        // Draw horizontal lines
+        for (let y = 0; y < canvas.height; y += 64) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+        
+        // Draw vertical lines
+        for (let x = 0; x < canvas.width; x += 64) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        
+        // Add some texture details to tiles
+        for (let tileY = 0; tileY < canvas.height; tileY += 64) {
+            for (let tileX = 0; tileX < canvas.width; tileX += 64) {
+                // Add subtle shadow/highlight
+                ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.05})`;
+                ctx.fillRect(tileX + 2, tileY + 2, 60, 60);
+                
+                // Add texture pattern
+                for (let i = 0; i < 10; i++) {
+                    const x = tileX + 5 + Math.random() * 54;
+                    const y = tileY + 5 + Math.random() * 54;
+                    const size = 1 + Math.random() * 3;
+                    
+                    ctx.fillStyle = `rgba(200,200,200,${Math.random() * 0.3})`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // Create data URL
+        const dataUrl = canvas.toDataURL('image/png');
+        
+        // Add to assets
+        const assets = document.getElementById('assets');
+        const img = document.createElement('img');
+        img.id = 'roof-texture';
+        img.src = dataUrl;
+        assets.appendChild(img);
+        
+        // Apply to roof
+        const roof = document.getElementById('roof');
+        roof.setAttribute('material', 'src: #roof-texture; repeat: 4 4');
+        
+        // Apply to other wall elements too
+        document.getElementById('wall-front-left').setAttribute('material', 'src: #wall-texture');
+        document.getElementById('wall-front-right').setAttribute('material', 'src: #wall-texture');
+        document.getElementById('wall-front-top').setAttribute('material', 'src: #wall-texture');
     }
     
     // Interactive objects
